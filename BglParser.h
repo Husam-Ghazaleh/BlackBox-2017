@@ -5,6 +5,7 @@
 #include<sstream>
 #include <vector>
 #include<stdlib.h>
+#include <algorithm>
 #include<cmath>
 std::ifstream ifstream_;
 const int MINUTES_PER_DAY = 24*60;
@@ -57,3 +58,4 @@ bool isEmpty(std::vector<Activity> &v);
 bool isMinimum(std::vector<int> &  bglBuffer);
 bool isMaximum(std::vector<int> & bglBuffer);
 void shiftToLeft(std::vector<int> & bglBuffer);
+int findFirstOccurance(int from, int value ,std::vector<int> &v);

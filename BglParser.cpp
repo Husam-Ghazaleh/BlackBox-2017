@@ -31,6 +31,7 @@ void bGLParser( const char * file){
 
   int nextThreeLinesCounter;
   bool lock = false;
+  bool Print =true;
 
   std::vector<int> potentialBglBuffer ={0};
   std::vector<BGL> bglVector;
@@ -54,6 +55,8 @@ void bGLParser( const char * file){
   // parse the simulator log file:
 
   std::string line;
+  int  minBglIndexFrom =0;
+  int  maxBglIndexFrom =0;
   if (ifstream_.is_open()){
     while (getline (ifstream_,line)){
       str_ = new char [line.length() + 1];
@@ -68,20 +71,17 @@ void bGLParser( const char * file){
 
 
       if (strcmp(activityToken,BGL_KEYWORD)== 0){
-
            tok_ = strtok(NULL," ");
            currentBglValue = atof(tok_);
            roundedCurrentBGLValue = int((currentBglValue + 5) / 10) * 10;
            bglBuffer.push_back(roundedCurrentBGLValue);
            bglTimeBuffer.push_back(minutes);
            if(bglBuffer.size()>=7){
-
-
-             potentialBglBuffer.clear();
-             for(int i =7; i>=1; i--) {
-               potentialBglBuffer.push_back(bglBuffer[bglBuffer.size()-i]);
-               //std :: cout << bglBuffer.size() << "_" << bglBuffer[bglBuffer.size()-i] << "_" << bglBuffer.size()-i << " ";
-             }
+                potentialBglBuffer.clear();
+                for(int i =7; i>=1; i--) {
+                    potentialBglBuffer.push_back(bglBuffer[bglBuffer.size()-i]);
+                    //std :: cout << bglBuffer.size() << "_" << bglBuffer[bglBuffer.size()-i] << "_" << bglBuffer.size()-i << " ";
+                }
             // std::cout << "\n";
             //  std:cout <<  potentialBglBuffer.push_back(bglBuffer[bglBuffer.size()-7]) <<"/n";
             //  std:cout << potentialBglBuffer.push_back(bglBuffer[bglBuffer.size()-6]);
@@ -126,43 +126,72 @@ void bGLParser( const char * file){
                 //  lock =false;
                   if(isMinimum(potentialBglBuffer)){
                       if(flag ==1){
+                         // Confirmed last MAX
+                         if(min == max -10 || min == lastMax -10){
+                             //std::cout   << max << "_" << min << "_"<< lastMax <<"\n";
+                             std::cout <<std::max(max,lastMax) <<"\n";
+                             Print =false;
+
+                          }
+                          else
+                          Print =true;
+
                           max = lastMax;
-                          std:: cout << "Max value: " << max <<" Happend at time "<< toTimeStamp(lastMaxBglTime) <<"\n";
+                          int index = findFirstOccurance(minBglIndexFrom, max, bglBuffer);
+                          std:: cout << toTimeStamp(bglTimeBuffer[index]) << "  " << bglBuffer[index] << "  " << "Max1" <<"\n" ;
                           lastMin = potentialBglBuffer[3];
                           lastMinBglTime = bglTimeBuffer[bglTimeBuffer.size()-4];
-
-
+                          minBglIndexFrom = bglBuffer.size() -4;
                           flag =0;
-                        }
-                      else if (flag == 0){
+
+
+                          if(Print)
+                          std:: cout << toTimeStamp(lastMaxBglTime)<<"  "<< max<<"  "<<"Max" <<"\n";
+
+
+                       }else if (flag == 0){
+                        // check if the current is less than prev min
                           if (lastMin > potentialBglBuffer[3]){
                               lastMin = potentialBglBuffer[3];
                               lastMinBglTime = bglTimeBuffer[bglTimeBuffer.size()-4];
+                              minBglIndexFrom = bglBuffer.size() -4;
                             }
-                      }
+                        }
                   }else if(isMaximum(potentialBglBuffer)){
-
-
                       if(flag ==0 ){
+                        // confirmed the last min
+
+                         if(max == min +10 || max == lastMin +10){
+
+                             //std::cout << min << "_"<< max << "_" << lastMin <<"\n";
+                             std::cout <<std::min(min,lastMin) <<"\n";
+                             Print =false;
+                          }
+                          else
+                              Print =true;
+
                           min= lastMin;
-                          std:: cout << "Min value: " << min <<" Happend at time "<< toTimeStamp(lastMinBglTime) <<"\n";
+                          int index = findFirstOccurance(maxBglIndexFrom, min, bglBuffer);
+                          std:: cout << toTimeStamp(bglTimeBuffer[index]) << "  " << bglBuffer[index]<< " " <<"Min1" << "\n" ;
                           lastMax = potentialBglBuffer[3];
                           lastMaxBglTime= bglTimeBuffer[bglTimeBuffer.size()-4];
-                        
+                          maxBglIndexFrom = bglBuffer.size()-4;
                           flag = 1;
+
+                          if(Print)
+                          std:: cout << toTimeStamp(lastMinBglTime) << "  " <<min << "  "<<"Min" <<"\n";
                           if (!isEmpty(activityVector)){
-
                                 Event event(activityVector, activityVector[0].time);
-                                std::cout << event << std::endl;
-                                std::cout  << '\n';
+                                //std::cout << event << std::endl;
+                                //std::cout  << '\n';
                                 activityVector.clear();
-
-
                           }
                       }else if (flag ==1){
+                        // check if the current is greater than the prev max
                           if(lastMax < potentialBglBuffer[3]){
                               lastMaxBglTime= bglTimeBuffer[bglTimeBuffer.size()-4];
                               lastMax = potentialBglBuffer[3];
+                              maxBglIndexFrom = bglBuffer.size()-4;
                             }
                         }
                   }//max
@@ -302,6 +331,15 @@ if (bglBuffer[3] >= bglBuffer[0] && bglBuffer[3] >=  bglBuffer[1]&& bglBuffer[3]
 
 return false;
 
+}
+
+int findFirstOccurance(int from, int value ,std::vector<int> &v){
+
+for (int i = from; i < v.size(); i++)
+    if(v[i] == value)
+      return i;
+
+return -1;
 }
 
 Event::Event(){
