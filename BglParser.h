@@ -59,3 +59,4 @@ bool isMinimum(std::vector<int> &  bglBuffer);
 bool isMaximum(std::vector<int> & bglBuffer);
 void shiftToLeft(std::vector<int> & bglBuffer);
 int findFirstOccurance(int from, int value ,std::vector<int> &v);
+int weiredPrinting (std::vector<int> &v ,std::vector<int> &vt,std::vector<int> &v1,std::vector<int> &v1t,int start);

@@ -57,6 +57,15 @@ void bGLParser( const char * file){
   std::string line;
   int  minBglIndexFrom =0;
   int  maxBglIndexFrom =0;
+
+  int anoyingstart=0;
+  std::vector<int> anoyingBuffer;
+  std::vector<int>anoyingBufferTime;
+  std::vector<int> min1max1;
+  std::vector<int> min1max1Time;
+
+
+
   if (ifstream_.is_open()){
     while (getline (ifstream_,line)){
       str_ = new char [line.length() + 1];
@@ -82,72 +91,24 @@ void bGLParser( const char * file){
                     potentialBglBuffer.push_back(bglBuffer[bglBuffer.size()-i]);
                     //std :: cout << bglBuffer.size() << "_" << bglBuffer[bglBuffer.size()-i] << "_" << bglBuffer.size()-i << " ";
                 }
-            // std::cout << "\n";
-            //  std:cout <<  potentialBglBuffer.push_back(bglBuffer[bglBuffer.size()-7]) <<"/n";
-            //  std:cout << potentialBglBuffer.push_back(bglBuffer[bglBuffer.size()-6]);
-            //  std:cout << potentialBglBuffer.push_back(bglBuffer[bglBuffer.size()-5]);
-            //  std:cout << potentialBglBuffer.push_back(bglBuffer[bglBuffer.size()-4]);
-            //  std:cout <<  potentialBglBuffer.push_back(bglBuffer[bglBuffer.size()-3]);
-            //  std:cout <<  potentialBglBuffer.push_back(bglBuffer[bglBuffer.size()-2]);
-            //  std:cout << potentialBglBuffer.push_back(bglBuffer[bglBuffer.size()-1]);
-
-
-          //    if((previouseBglValue < roundedCurrentBGLValue) and !lock ){
-           //
-          //           potentialBglBuffer.clear();
-          //           potentialBglBuffer.push_back(bglBuffer[bglBuffer.size()-5]);
-          //           potentialBglBuffer.push_back(bglBuffer[bglBuffer.size()-4]);
-          //           potentialBglBuffer.push_back(bglBuffer[bglBuffer.size()-3]);
-          //           potentialBglBuffer.push_back(bglBuffer[bglBuffer.size()-2]);
-           //
-           //
-          //           minBglTimeSoFar = minutes-1;
-          //           lock = true;
-          //           nextThreeLinesCounter = 0;
-           //
-          //  }
-           //
-          //   else if(previouseBglValue != 999999 && !lock && previouseBglValue > roundedCurrentBGLValue){
-           //
-          //     potentialBglBuffer.clear();
-          //     potentialBglBuffer.push_back(bglBuffer[bglBuffer.size()-5]);
-          //     potentialBglBuffer.push_back(bglBuffer[bglBuffer.size()-4]);
-          //     potentialBglBuffer.push_back(bglBuffer[bglBuffer.size()-3]);
-          //     potentialBglBuffer.push_back(bglBuffer[bglBuffer.size()-2]);
-           //
-          //     maxBglTimeSofar = minutes-1;
-           //
-          //     lock = true;
-          //     nextThreeLinesCounter =0;
-          //   }
-
-            // if( lock ){
-              // if(nextThreeLinesCounter >= 3 ){
-                //  lock =false;
                   if(isMinimum(potentialBglBuffer)){
                       if(flag ==1){
                          // Confirmed last MAX
-                         if(min == max -10 || min == lastMax -10){
-                             //std::cout   << max << "_" << min << "_"<< lastMax <<"\n";
-                             std::cout <<std::max(max,lastMax) <<"\n";
-                             Print =false;
-
-                          }
-                          else
-                          Print =true;
-
                           max = lastMax;
+                          anoyingBuffer.push_back(max);
+                          anoyingBufferTime.push_back(lastMaxBglTime);
+
+
                           int index = findFirstOccurance(minBglIndexFrom, max, bglBuffer);
-                          std:: cout << toTimeStamp(bglTimeBuffer[index]) << "  " << bglBuffer[index] << "  " << "Max1" <<"\n" ;
+                          //std:: cout << toTimeStamp(bglTimeBuffer[index]) << "  " << bglBuffer[index] << "  " << "Max1" <<"\n" ;
+                           min1max1.push_back(bglBuffer[index]);
+                           min1max1Time.push_back (bglTimeBuffer[index]);
+
                           lastMin = potentialBglBuffer[3];
                           lastMinBglTime = bglTimeBuffer[bglTimeBuffer.size()-4];
                           minBglIndexFrom = bglBuffer.size() -4;
                           flag =0;
-
-
-                          if(Print)
-                          std:: cout << toTimeStamp(lastMaxBglTime)<<"  "<< max<<"  "<<"Max" <<"\n";
-
+                          //std:: cout << toTimeStamp(lastMaxBglTime)<<"  "<< max<<"  "<<"Max" <<"\n";
 
                        }else if (flag == 0){
                         // check if the current is less than prev min
@@ -160,32 +121,36 @@ void bGLParser( const char * file){
                   }else if(isMaximum(potentialBglBuffer)){
                       if(flag ==0 ){
                         // confirmed the last min
-
-                         if(max == min +10 || max == lastMin +10){
-
-                             //std::cout << min << "_"<< max << "_" << lastMin <<"\n";
-                             std::cout <<std::min(min,lastMin) <<"\n";
-                             Print =false;
-                          }
-                          else
-                              Print =true;
-
                           min= lastMin;
+                          anoyingBuffer.push_back(min);
+                          anoyingBufferTime.push_back(lastMinBglTime);
                           int index = findFirstOccurance(maxBglIndexFrom, min, bglBuffer);
-                          std:: cout << toTimeStamp(bglTimeBuffer[index]) << "  " << bglBuffer[index]<< " " <<"Min1" << "\n" ;
+                          //std:: cout << toTimeStamp(bglTimeBuffer[index]) << "  " << bglBuffer[index]<< " " <<"Min1" << "\n" ;
+
+                          min1max1.push_back(bglBuffer[index]);
+
+                          min1max1Time.push_back(bglTimeBuffer[index]);
+
+
+
                           lastMax = potentialBglBuffer[3];
                           lastMaxBglTime= bglTimeBuffer[bglTimeBuffer.size()-4];
                           maxBglIndexFrom = bglBuffer.size()-4;
                           flag = 1;
-
-                          if(Print)
-                          std:: cout << toTimeStamp(lastMinBglTime) << "  " <<min << "  "<<"Min" <<"\n";
+                          //std:: cout << toTimeStamp(lastMinBglTime) << "  " <<min << "  "<<"Min" <<"\n";
                           if (!isEmpty(activityVector)){
                                 Event event(activityVector, activityVector[0].time);
                                 //std::cout << event << std::endl;
                                 //std::cout  << '\n';
                                 activityVector.clear();
                           }
+                          // if(anoyingBuffer.size()>= 3){
+
+                             //anoyingstart =
+                             //std::cout <<"time now: " << toTimeStamp(minutes) <<"_" <<anoyingstart<<"\n";
+
+                          // }
+
                       }else if (flag ==1){
                         // check if the current is greater than the prev max
                           if(lastMax < potentialBglBuffer[3]){
@@ -200,8 +165,6 @@ void bGLParser( const char * file){
               //     nextThreeLinesCounter++;
               //   }
           }
-
-        //previouseBglValue = roundedCurrentBGLValue;
         outfile<< toTimeStamp(minutes);
         outfile << " " << roundedCurrentBGLValue << std::endl;
         BGL bgl;
@@ -248,6 +211,7 @@ void bGLParser( const char * file){
     ifstream_.close();
     //baselBGL(bglVector);
   }
+  weiredPrinting(anoyingBuffer,anoyingBufferTime,min1max1 ,min1max1Time,anoyingstart);
 }
 
 int toMinutes( char * timestamp){
@@ -373,6 +337,61 @@ std::ostream& operator<< (std::ostream &strm,  Event &e){
     for (auto i: e.getActivities())
        strm << toTimeStamp(i.time) << " " << i.bgl<< "  "<< i.desc << std:: endl;
     return strm;
+}
+
+
+int weiredPrinting (std::vector<int> &v ,std::vector<int> &vt,std::vector<int> &minmax,std::vector<int> &minmaxtime,int start ){
+
+      //std::cout <<minmaxtime.size() << "_" << start << "\n";
+
+  while(start < v.size() ){
+      if(start % 2 ==0){
+
+           int min1 = v[start];
+           int max = v[start+1];
+           int min2= v[start+2];
+
+           if(max == min1 + 10 || max == min2 +10){
+                  std::cout << toTimeStamp(minmaxtime[start]) << " " << minmax[start] << "  Min1"<<"\n";
+                  std::cout <<toTimeStamp(minmaxtime[start+1]) <<" " <<minmax[start +1]<<"  Max1" <<"\n";
+                  std::cout <<toTimeStamp(minmaxtime[start+2] )<<" " <<minmax[start +2]<< " Min1"<<"\n";
+
+                 std::cout <<std::min(min1,min2) <<"\n";
+                 start = start+3;
+            }
+           else {
+                   std::cout << toTimeStamp(minmaxtime[start]) <<"  "<< minmax[start] << " Min1 "<< "\n";
+                   std::cout << toTimeStamp(vt[start]) <<"  "<< min1 << " Min "<< "\n";
+                   //std::cout << max <<" Max "<< "\n";
+                   //std::cout << min2 << " Min2 "<<"\n";
+                   start =start+1;
+
+                }
+        }
+
+        else {
+            int max1 =v[start];
+            int min =v[start+1];
+            int max2 =v[start+2];
+            if(min == max1-10 || min == max2 -10){
+               std::cout <<toTimeStamp(minmaxtime[start]) << " " << minmax[start] << " Max1"<<"\n";
+               std::cout <<toTimeStamp(minmaxtime[start+1]) <<" " <<minmax[start +1]<<" Min1" <<"\n";
+               std::cout <<toTimeStamp(minmaxtime[start+2]) <<" " <<minmax[start +2]<< " Max1"<<"\n";
+             std::cout <<std::max(max1,max2) <<"\n";
+                start =start+3 ;
+            }
+            else{
+
+              std::cout << toTimeStamp(minmaxtime[start]) <<"  "<< minmax[start] << " Max1 "<< "\n";
+              std::cout <<toTimeStamp(vt[start]) << "  " <<max1  <<" Max "<<"\n";
+              //std::cout << min <<" Min " <<"\n";
+              //std::cout << max2  <<" Max2 "<<"\n";
+               start =start+1;
+            }
+        }
+
+  }
+
 }
 
 // if (!isEmpty(activityVector) && makeevent){  // if there is an activity there, create an event
