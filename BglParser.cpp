@@ -12,14 +12,13 @@ int main (int argc, char * argv[]){
 
 void bGLParser( const char * file){
 
-
   char * str_ =NULL;
   char* activityToken =NULL;
   char* timestamp = NULL;
 
-
   double currentBglValue = 0;
-  int roundedCurrentBGLValue =0;
+  int roundedBGLValue =0;
+  int roundedCurrentBGlTime ;
   double previouseBglValue =999999;
 
   int lastMin = 9999999, lastMax, max, min;
@@ -58,11 +57,11 @@ void bGLParser( const char * file){
   int  minBglIndexFrom =0;
   int  maxBglIndexFrom =0;
 
-  int anoyingstart=0;
-  std::vector<int> anoyingBuffer;
-  std::vector<int>anoyingBufferTime;
-  std::vector<int> min1max1;
-  std::vector<int> min1max1Time;
+  int start=0;
+  std::vector<int> minMaxBuffer;
+  std::vector<int>minMaxBufferTime;
+  std::vector<int> min1_Max1_;
+  std::vector<int> min1_Max1_Time;
 
 
 
@@ -82,8 +81,10 @@ void bGLParser( const char * file){
       if (strcmp(activityToken,BGL_KEYWORD)== 0){
            tok_ = strtok(NULL," ");
            currentBglValue = atof(tok_);
-           roundedCurrentBGLValue = int((currentBglValue + 5) / 10) * 10;
-           bglBuffer.push_back(roundedCurrentBGLValue);
+           // Filter 1: Round all BGLs to nearest 10
+           roundedBGLValue = int((currentBglValue + 5) / 10) * 10;
+           bglBuffer.push_back(roundedBGLValue);
+           roundedCurrentBGlTime = minutes;
            bglTimeBuffer.push_back(minutes);
            if(bglBuffer.size()>=7){
                 potentialBglBuffer.clear();
@@ -95,14 +96,14 @@ void bGLParser( const char * file){
                       if(flag ==1){
                          // Confirmed last MAX
                           max = lastMax;
-                          anoyingBuffer.push_back(max);
-                          anoyingBufferTime.push_back(lastMaxBglTime);
+                          minMaxBuffer.push_back(max);
+                          minMaxBufferTime.push_back(lastMaxBglTime);
 
 
                           int index = findFirstOccurance(minBglIndexFrom, max, bglBuffer);
                           //std:: cout << toTimeStamp(bglTimeBuffer[index]) << "  " << bglBuffer[index] << "  " << "Max1" <<"\n" ;
-                           min1max1.push_back(bglBuffer[index]);
-                           min1max1Time.push_back (bglTimeBuffer[index]);
+                           min1_Max1_.push_back(bglBuffer[index]);
+                           min1_Max1_Time.push_back (bglTimeBuffer[index]);
 
                           lastMin = potentialBglBuffer[3];
                           lastMinBglTime = bglTimeBuffer[bglTimeBuffer.size()-4];
@@ -122,14 +123,14 @@ void bGLParser( const char * file){
                       if(flag ==0 ){
                         // confirmed the last min
                           min= lastMin;
-                          anoyingBuffer.push_back(min);
-                          anoyingBufferTime.push_back(lastMinBglTime);
+                          minMaxBuffer.push_back(min);
+                          minMaxBufferTime.push_back(lastMinBglTime);
                           int index = findFirstOccurance(maxBglIndexFrom, min, bglBuffer);
                           //std:: cout << toTimeStamp(bglTimeBuffer[index]) << "  " << bglBuffer[index]<< " " <<"Min1" << "\n" ;
 
-                          min1max1.push_back(bglBuffer[index]);
+                          min1_Max1_.push_back(bglBuffer[index]);
 
-                          min1max1Time.push_back(bglTimeBuffer[index]);
+                          min1_Max1_Time.push_back(bglTimeBuffer[index]);
 
 
 
@@ -144,10 +145,10 @@ void bGLParser( const char * file){
                                 //std::cout  << '\n';
                                 activityVector.clear();
                           }
-                          // if(anoyingBuffer.size()>= 3){
+                          // if(minMaxBuffer.size()>= 3){
 
-                             //anoyingstart =
-                             //std::cout <<"time now: " << toTimeStamp(minutes) <<"_" <<anoyingstart<<"\n";
+                             //start =
+                             //std::cout <<"time now: " << toTimeStamp(minutes) <<"_" <<start<<"\n";
 
                           // }
 
@@ -161,12 +162,12 @@ void bGLParser( const char * file){
                         }
                   }//max
               // }else{
-              //     potentialBglBuffer.push_back(roundedCurrentBGLValue);
+              //     potentialBglBuffer.push_back(roundedBGLValue);
               //     nextThreeLinesCounter++;
               //   }
           }
-        outfile<< toTimeStamp(minutes);
-        outfile << " " << roundedCurrentBGLValue << std::endl;
+        // outfile<< toTimeStamp(minutes);
+        // outfile << " " << roundedBGLValue << std::endl;
         BGL bgl;
         bgl.time = minutes;
         bgl.value = currentBglValue;
@@ -185,12 +186,14 @@ void bGLParser( const char * file){
         // Create an exercise activity:
           Activity activity;
           activity.desc = descTemp;
-          activity.bgl = roundedCurrentBGLValue;
+          activity.bgl = roundedBGLValue;
           activity.time = minutes;
           activity.howmuch = duration;
           activityVector.push_back(activity);
 
       } else if (strcmp(activityToken,DIET_KEYWORD)== 0){
+
+
 
           tok_ = strtok(NULL," ");
           double servingSizeTemp = atof(tok_);
@@ -198,10 +201,13 @@ void bGLParser( const char * file){
           tok_ = strtok(NULL," ");
           tok_ = strtok(NULL," ");
           std::string descTemp = tok_ ;
+          outfile << toTimeStamp(roundedCurrentBGlTime);
+          outfile << " " << roundedBGLValue;
+          outfile << " " << descTemp << "\n" ;
             // Create a food activity:
           Activity activity;
           activity.desc = descTemp;
-          activity.bgl = roundedCurrentBGLValue;
+          activity.bgl = roundedBGLValue;
           activity.time = minutes;
           activity.howmuch = servingSizeTemp;
           activityVector.push_back(activity);
@@ -211,7 +217,7 @@ void bGLParser( const char * file){
     ifstream_.close();
     //baselBGL(bglVector);
   }
-  weiredPrinting(anoyingBuffer,anoyingBufferTime,min1max1 ,min1max1Time,anoyingstart);
+  filters(minMaxBuffer,minMaxBufferTime,min1_Max1_ ,min1_Max1_Time,start);
 }
 
 int toMinutes( char * timestamp){
@@ -339,29 +345,38 @@ std::ostream& operator<< (std::ostream &strm,  Event &e){
     return strm;
 }
 
-
-int weiredPrinting (std::vector<int> &v ,std::vector<int> &vt,std::vector<int> &minmax,std::vector<int> &minmaxtime,int start ){
+//filters(minMaxBuffer,minMaxBufferTime,min1_Max1_ ,min1_Max1_Time,start)
+void filters (std::vector<int> &minMaxBuffer ,std::vector<int> &minMaxBufferTime,std::vector<int> &min1_Max1_,std::vector<int> &min1_Max1_Time,int start ){
 
       //std::cout <<minmaxtime.size() << "_" << start << "\n";
 
-  while(start < v.size() ){
+  while(start < minMaxBuffer.size() ){
       if(start % 2 ==0){
 
-           int min1 = v[start];
-           int max = v[start+1];
-           int min2= v[start+2];
+           int min1 = minMaxBuffer[start];
+           int max = minMaxBuffer[start+1];
+           int min2= minMaxBuffer[start+2];
 
            if(max == min1 + 10 || max == min2 +10){
-                  std::cout << toTimeStamp(minmaxtime[start]) << " " << minmax[start] << "  Min1"<<"\n";
-                  std::cout <<toTimeStamp(minmaxtime[start+1]) <<" " <<minmax[start +1]<<"  Max1" <<"\n";
-                  std::cout <<toTimeStamp(minmaxtime[start+2] )<<" " <<minmax[start +2]<< " Min1"<<"\n";
+                  //std::cout << toTimeStamp(minmaxtime[start]) << " " << minmax[start] << "  Min1"<<"\n";
+                  //std::cout <<toTimeStamp(minmaxtime[start+1]) <<" " <<minmax[start +1]<<"  Max1" <<"\n";
+                  //std::cout <<toTimeStamp(minmaxtime[start+2] )<<" " <<minmax[start +2]<< " Min1"<<"\n";
+                  if(min1<= min2){
+                      std::cout << toTimeStamp(min1_Max1_Time[start]) << " " << min1_Max1_[start] << "  Min1_"<<"\n";
+                      std::cout << toTimeStamp(minMaxBufferTime[start]) << " " << min1  <<" " <<"Min" << '\n';
 
-                 std::cout <<std::min(min1,min2) <<"\n";
+                  }
+                  else{
+                      std::cout <<toTimeStamp(min1_Max1_Time[start+2] )<<" " <<min1_Max1_[start +2]<< " Min1_"<<"\n";
+                      std::cout << toTimeStamp(minMaxBufferTime[start+2]) << " " << min2  <<" " <<"Min" << '\n';
+
+                  }
+                 //std::cout <<std::min(min1,min2) <<"\n";
                  start = start+3;
             }
            else {
-                   std::cout << toTimeStamp(minmaxtime[start]) <<"  "<< minmax[start] << " Min1 "<< "\n";
-                   std::cout << toTimeStamp(vt[start]) <<"  "<< min1 << " Min "<< "\n";
+                   std::cout << toTimeStamp(min1_Max1_Time[start]) <<"  "<< min1_Max1_[start] << " Min1_ "<< "\n";
+                   std::cout << toTimeStamp(minMaxBufferTime[start]) <<"  "<< min1 << " Min "<< "\n";
                    //std::cout << max <<" Max "<< "\n";
                    //std::cout << min2 << " Min2 "<<"\n";
                    start =start+1;
@@ -370,20 +385,35 @@ int weiredPrinting (std::vector<int> &v ,std::vector<int> &vt,std::vector<int> &
         }
 
         else {
-            int max1 =v[start];
-            int min =v[start+1];
-            int max2 =v[start+2];
+            int max1 =minMaxBuffer[start];
+            int min =minMaxBuffer[start+1];
+            int max2 =minMaxBuffer[start+2];
             if(min == max1-10 || min == max2 -10){
-               std::cout <<toTimeStamp(minmaxtime[start]) << " " << minmax[start] << " Max1"<<"\n";
-               std::cout <<toTimeStamp(minmaxtime[start+1]) <<" " <<minmax[start +1]<<" Min1" <<"\n";
-               std::cout <<toTimeStamp(minmaxtime[start+2]) <<" " <<minmax[start +2]<< " Max1"<<"\n";
-             std::cout <<std::max(max1,max2) <<"\n";
+            //    std::cout <<toTimeStamp(minmaxtime[start]) << " " << minmax[start] << " Max1"<<"\n";
+            //    std::cout <<toTimeStamp(minmaxtime[start+1]) <<" " <<minmax[start +1]<<" Min1" <<"\n";
+            //    std::cout <<toTimeStamp(minmaxtime[start+2]) <<" " <<minmax[start +2]<< " Max1"<<"\n";
+            //  std::cout <<std::max(max1,max2) <<"\n";
+            if(max1>=max2){
+              std::cout << toTimeStamp(min1_Max1_Time[start]) << " " << min1_Max1_[start] << "  Max1_"<<"\n";
+              std::cout << toTimeStamp(minMaxBufferTime[start]) << " " << max1  <<" " <<"Max" << '\n';
+
+
+
+            }else{
+              std::cout <<toTimeStamp(min1_Max1_Time[start+2] )<<" " <<min1_Max1_[start +2]<< " Max1_"<<"\n";
+              std::cout << toTimeStamp(minMaxBufferTime[start+2]) << " " << max2  <<" " <<"Max" << '\n';
+
+
+            }
+
+
+
                 start =start+3 ;
             }
             else{
 
-              std::cout << toTimeStamp(minmaxtime[start]) <<"  "<< minmax[start] << " Max1 "<< "\n";
-              std::cout <<toTimeStamp(vt[start]) << "  " <<max1  <<" Max "<<"\n";
+              std::cout << toTimeStamp(min1_Max1_Time[start]) <<"  "<< min1_Max1_[start] << " Max1_ "<< "\n";
+              std::cout <<toTimeStamp(minMaxBufferTime[start]) << "  " <<max1  <<" Max "<<"\n";
               //std::cout << min <<" Min " <<"\n";
               //std::cout << max2  <<" Max2 "<<"\n";
                start =start+1;

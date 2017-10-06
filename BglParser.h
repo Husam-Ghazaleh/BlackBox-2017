@@ -57,6 +57,5 @@ std::string toTimeStamp (int  time);
 bool isEmpty(std::vector<Activity> &v);
 bool isMinimum(std::vector<int> &  bglBuffer);
 bool isMaximum(std::vector<int> & bglBuffer);
-void shiftToLeft(std::vector<int> & bglBuffer);
 int findFirstOccurance(int from, int value ,std::vector<int> &v);
-int weiredPrinting (std::vector<int> &v ,std::vector<int> &vt,std::vector<int> &v1,std::vector<int> &v1t,int start);
+void filters (std::vector<int> &v ,std::vector<int> &vt,std::vector<int> &v1,std::vector<int> &v1t,int start);
