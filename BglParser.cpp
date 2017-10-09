@@ -272,7 +272,7 @@ std::ostream& operator<< (std::ostream &strm,  Event &e){
     for (auto i: e.getActivities()){
       if( previousetime <= e.getMax1_Time() &&  e.getMax1_Time() <= i.time )
             std::cout  <<  toTimeStamp(e.getMax1_Time()) << " "<< e.getMax1_()<<" Max1_ ""\n";
-            
+
       if( previousetime <= e.getMaxTime() &&  e.getMaxTime() <= i.time )
             std::cout << toTimeStamp(e.getMaxTime()) <<" " << e.getMax() << " Max " << "\n";
 
@@ -285,6 +285,7 @@ std::ostream& operator<< (std::ostream &strm,  Event &e){
 
     }
 
+    //std::cout << "Min2_mmmmm  " <<  toTimeStamp(e.getMin2_Time())<< " " << e.getMin2_() <<"\n";
     std:: cout <<toTimeStamp(e.getMin2Time()) << " "<< e.getMin2() << " Min2"  << "\n";
     return strm;
 }
@@ -292,6 +293,8 @@ void filters (std::vector<int> &minMaxVector ,std::vector<int> &minMaxVectorTime
 
   std::vector<int> finalminMaxVector;
   std::vector<int> finalminMaxTimeVector;
+  std::vector<int> finalmin1_Max1_Vector;
+  std::vector<int> finalmin1_Max1_VectorTime;
   // Applying the rules 7,8,9,10, and 11.
   while(start < minMaxVector.size() ){
       if(start % 2 ==0){
@@ -305,6 +308,9 @@ void filters (std::vector<int> &minMaxVector ,std::vector<int> &minMaxVectorTime
                       std::cout << toTimeStamp(time) << " " << min1  <<" " <<"Min" << '\n';
                       finalminMaxVector.push_back(min1);
                       finalminMaxTimeVector.push_back(time);
+                      finalmin1_Max1_Vector.push_back(min1_Max1_[start]);
+                      finalmin1_Max1_VectorTime.push_back(min1_Max1_Time[start]);
+
 
                   }
                   else{
@@ -313,6 +319,9 @@ void filters (std::vector<int> &minMaxVector ,std::vector<int> &minMaxVectorTime
                       std::cout << toTimeStamp(time) << " " << min2  <<" " <<"Min" << '\n';
                       finalminMaxVector.push_back(min2);
                       finalminMaxTimeVector.push_back(time);
+                      finalmin1_Max1_Vector.push_back(min1_Max1_[start+2]);
+                      finalmin1_Max1_VectorTime.push_back(min1_Max1_Time[start+2]);
+
 
                   }
                  start = start+3;
@@ -323,6 +332,10 @@ void filters (std::vector<int> &minMaxVector ,std::vector<int> &minMaxVectorTime
                    std::cout << toTimeStamp(minMaxVectorTime[start]) <<"  "<< min1 << " Min "<< "\n";
                    finalminMaxVector.push_back(min1);
                    finalminMaxTimeVector.push_back(time);
+                   finalmin1_Max1_Vector.push_back(min1_Max1_[start]);
+                   finalmin1_Max1_VectorTime.push_back(min1_Max1_Time[start]);
+                   
+
                    start =start+1;
                 }
       }else {
@@ -336,6 +349,9 @@ void filters (std::vector<int> &minMaxVector ,std::vector<int> &minMaxVectorTime
                   std::cout << toTimeStamp(time) << " " << max1  <<" " <<"Max" << '\n';
                   finalminMaxVector.push_back(max1);
                   finalminMaxTimeVector.push_back(time);
+                  finalmin1_Max1_Vector.push_back(min1_Max1_[start]);
+                  finalmin1_Max1_VectorTime.push_back(min1_Max1_Time[start]);
+
 
 
                }else{
@@ -344,6 +360,9 @@ void filters (std::vector<int> &minMaxVector ,std::vector<int> &minMaxVectorTime
                   std::cout << toTimeStamp(time) << " " << max2  <<" " <<"Max" << '\n';
                   finalminMaxVector.push_back(max2);
                   finalminMaxTimeVector.push_back(time);
+                  finalmin1_Max1_Vector.push_back(min1_Max1_[start+2]);
+                  finalmin1_Max1_VectorTime.push_back(min1_Max1_Time[start+2]);
+
                }
               start =start+3 ;
           }else{
@@ -352,12 +371,15 @@ void filters (std::vector<int> &minMaxVector ,std::vector<int> &minMaxVectorTime
               std::cout <<toTimeStamp(time) << "  " << max1  <<" Max "<<"\n";
               finalminMaxVector.push_back(max1);
               finalminMaxTimeVector.push_back(time);
+              finalmin1_Max1_Vector.push_back(min1_Max1_[start]);
+              finalmin1_Max1_VectorTime.push_back(min1_Max1_Time[start]);
+
               start =start+1;
             }
         }
     }
 
-    createEvents(finalminMaxVector,finalminMaxTimeVector,min1_Max1_,min1_Max1_Time,act);
+    createEvents(finalminMaxVector,finalminMaxTimeVector,finalmin1_Max1_Vector,finalmin1_Max1_VectorTime,act);
 }
 
 int createEvents(std::vector<int> &minMaxVector ,std::vector<int> &minMaxVectorTime,std::vector<int> &min1_Max1_,std::vector<int> &min1_Max1_Time,std::vector<Activity> &act){
@@ -408,15 +430,13 @@ int createEvents(std::vector<int> &minMaxVector ,std::vector<int> &minMaxVectorT
           max   =  minMaxVector[i+1];
           min2_ = min1_Max1_[i+2];
           min2 = minMaxVector[i+2];
-
-
           min1Time = minMaxVectorTime[i];
           max1_Time = min1_Max1_Time[i+1];
           maxTime = minMaxVectorTime[i+1];
-          min2_Time = minMaxVectorTime[i+2];
-          min2Time =minMaxVectorTime[i+2];
-
+          min2_Time = min1_Max1_Time[i+2];
+          min2Time = minMaxVectorTime[i+2];
           Event event(actTemp, min1,max1_,max,min2_,min2,min1Time,max1_Time,maxTime,min2_Time,min2Time);
+
           actTemp.push_back(act[start]);
           std::cout <<"Event "<<event.getID() << "\n";
           std::cout << event <<"\n";
